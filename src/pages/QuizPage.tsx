@@ -8,6 +8,11 @@ import { createQuestions } from '../utils/quizUtils'
 
 const secondsPerQuestion = 15
 
+type QuestionProgress = {
+  selectedAnswer: string | null
+  secondsLeft: number
+}
+
 function playFeedback(type: 'correct' | 'wrong') {
   const AudioContextConstructor =
     window.AudioContext ||
@@ -37,11 +42,17 @@ export default function QuizPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [score, setScore] = useState(0)
-  const [seconds, setSeconds] = useState(secondsPerQuestion)
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [progress, setProgress] = useState<QuestionProgress[]>([])
 
   const currentQuestion = useMemo(() => questions[currentIndex], [currentIndex, questions])
+  const currentProgress = progress[currentIndex]
+  const score = useMemo(
+    () =>
+      questions.reduce((total, question, index) => {
+        return progress[index]?.selectedAnswer === question.answer ? total + 1 : total
+      }, 0),
+    [progress, questions],
+  )
 
   useEffect(() => {
     let isActive = true
@@ -49,7 +60,15 @@ export default function QuizPage() {
     getCountries()
       .then((countries) => {
         if (isActive) {
-          setQuestions(createQuestions(countries))
+          const nextQuestions = createQuestions(countries)
+
+          setQuestions(nextQuestions)
+          setProgress(
+            nextQuestions.map(() => ({
+              selectedAnswer: null,
+              secondsLeft: secondsPerQuestion,
+            })),
+          )
         }
       })
       .catch(() => {
@@ -76,42 +95,57 @@ export default function QuizPage() {
       }
 
       setCurrentIndex((current) => current + 1)
-      setSelectedAnswer(null)
-      setSeconds(secondsPerQuestion)
     }, 650)
   }, [currentIndex, navigate, questions.length])
 
   const handleAnswer = useCallback((answer: string) => {
-    if (!currentQuestion || selectedAnswer) {
+    if (!currentQuestion || currentProgress?.selectedAnswer) {
       return
     }
 
     const isCorrect = answer === currentQuestion.answer
     const nextScore = isCorrect ? score + 1 : score
 
-    setSelectedAnswer(answer)
-    setScore(nextScore)
+    setProgress((current) =>
+      current.map((item, index) =>
+        index === currentIndex
+          ? {
+              ...item,
+              selectedAnswer: answer,
+            }
+          : item,
+      ),
+    )
     playFeedback(isCorrect ? 'correct' : 'wrong')
     goToNextQuestion(nextScore)
-  }, [currentQuestion, goToNextQuestion, score, selectedAnswer])
+  }, [currentIndex, currentProgress?.selectedAnswer, currentQuestion, goToNextQuestion, score])
 
   useEffect(() => {
-    if (isLoading || error || selectedAnswer || !currentQuestion) {
+    if (isLoading || error || currentProgress?.selectedAnswer || !currentQuestion || !currentProgress) {
       return undefined
     }
 
-    if (seconds === 0) {
+    if (currentProgress.secondsLeft === 0) {
       const timeoutId = window.setTimeout(() => handleAnswer('__timeout__'), 0)
 
       return () => window.clearTimeout(timeoutId)
     }
 
     const intervalId = window.setInterval(() => {
-      setSeconds((current) => current - 1)
+      setProgress((current) =>
+        current.map((item, index) =>
+          index === currentIndex
+            ? {
+                ...item,
+                secondsLeft: Math.max(item.secondsLeft - 1, 0),
+              }
+            : item,
+        ),
+      )
     }, 1000)
 
     return () => window.clearInterval(intervalId)
-  }, [currentQuestion, error, handleAnswer, isLoading, seconds, selectedAnswer])
+  }, [currentIndex, currentProgress, currentQuestion, error, handleAnswer, isLoading])
 
   if (isLoading) {
     return (
@@ -152,10 +186,12 @@ export default function QuizPage() {
         <p className="text-sm font-bold text-slate-600 dark:text-slate-300">Puntaje: {score}</p>
         <QuestionCard
           currentIndex={currentIndex}
+          onChangeQuestion={setCurrentIndex}
           onAnswer={handleAnswer}
           question={currentQuestion}
-          seconds={seconds}
-          selectedAnswer={selectedAnswer}
+          progress={progress}
+          seconds={currentProgress?.secondsLeft ?? secondsPerQuestion}
+          selectedAnswer={currentProgress?.selectedAnswer ?? null}
           total={questions.length}
         />
       </div>
