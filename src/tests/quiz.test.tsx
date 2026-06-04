@@ -1,11 +1,12 @@
 import '@testing-library/jest-dom/vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ThemeToggle from '../components/ui/ThemeToggle'
 import QuizPage from '../pages/QuizPage'
 import type { Country } from '../services/countriesApi'
+import { getCountries } from '../services/countriesApi'
 import { createQuestions } from '../utils/quizUtils'
 import { getHighScore, saveHighScore } from '../utils/storage'
 
@@ -23,6 +24,7 @@ const countries: Country[] = [
 beforeEach(() => {
   localStorage.clear()
   document.documentElement.className = ''
+  vi.mocked(getCountries).mockImplementation(() => new Promise(() => undefined))
 })
 
 describe('country quiz', () => {
@@ -57,6 +59,24 @@ describe('country quiz', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText(/cargando paises/i)).toBeInTheDocument()
+    expect(screen.getByText(/preparando el quiz/i)).toBeInTheDocument()
+  })
+
+  it('informa cuando usa paises de respaldo', async () => {
+    vi.mocked(getCountries).mockResolvedValue({
+      countries,
+      source: 'fallback',
+      message: 'Usamos paises de respaldo para esta ronda.',
+    })
+
+    render(
+      <MemoryRouter>
+        <QuizPage />
+      </MemoryRouter>,
+    )
+
+    await waitFor(() =>
+      expect(screen.getByText(/usamos paises de respaldo para esta ronda/i)).toBeInTheDocument(),
+    )
   })
 })

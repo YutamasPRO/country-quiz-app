@@ -12,7 +12,7 @@ export function shuffle<T>(items: T[]): T[] {
   return [...items].sort(() => Math.random() - 0.5)
 }
 
-export function createQuestions(countries: Country[], amount = 6): Question[] {
+export function createQuestions(countries: Country[], amount = 10): Question[] {
   const selectedCountries = shuffle(countries).slice(0, amount)
 
   return selectedCountries.map((country, index) => {
