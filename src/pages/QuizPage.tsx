@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import QuestionCard from '../components/quiz/QuestionCard'
 import ThemeToggle from '../components/ui/ThemeToggle'
 import { getCountries } from '../services/countriesApi'
+import { playFeedback } from '../utils/audioFeedback'
 import type { Question } from '../utils/quizUtils'
 import { createQuestions } from '../utils/quizUtils'
 
@@ -13,34 +14,12 @@ type QuestionProgress = {
   secondsLeft: number
 }
 
-function playFeedback(type: 'correct' | 'wrong') {
-  const AudioContextConstructor =
-    window.AudioContext ||
-    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-
-  if (!AudioContextConstructor) {
-    return
-  }
-
-  const audioContext = new AudioContextConstructor()
-  const oscillator = audioContext.createOscillator()
-  const gain = audioContext.createGain()
-
-  oscillator.frequency.value = type === 'correct' ? 660 : 180
-  oscillator.type = 'sine'
-  gain.gain.setValueAtTime(0.08, audioContext.currentTime)
-  gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.18)
-  oscillator.connect(gain)
-  gain.connect(audioContext.destination)
-  oscillator.start()
-  oscillator.stop(audioContext.currentTime + 0.18)
-}
-
 export default function QuizPage() {
   const navigate = useNavigate()
   const [questions, setQuestions] = useState<Question[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [statusMessage, setStatusMessage] = useState('')
   const [currentIndex, setCurrentIndex] = useState(0)
   const [progress, setProgress] = useState<QuestionProgress[]>([])
 
@@ -59,11 +38,18 @@ export default function QuizPage() {
     [progress, questions],
   )
 
-  useEffect(() => {
+  const loadQuiz = useCallback(() => {
     let isActive = true
 
+    setIsLoading(true)
+    setError('')
+    setStatusMessage('')
+    setCurrentIndex(0)
+    setQuestions([])
+    setProgress([])
+
     getCountries()
-      .then((countries) => {
+      .then(({ countries, message, source }) => {
         if (isActive) {
           const nextQuestions = createQuestions(countries)
 
@@ -74,6 +60,10 @@ export default function QuizPage() {
               secondsLeft: secondsPerQuestion,
             })),
           )
+
+          if (source === 'fallback' && message) {
+            setStatusMessage(message)
+          }
         }
       })
       .catch(() => {
@@ -91,6 +81,12 @@ export default function QuizPage() {
       isActive = false
     }
   }, [])
+
+  useEffect(() => {
+    const cleanup = loadQuiz()
+
+    return cleanup
+  }, [loadQuiz])
 
   const goToNextQuestion = useCallback((nextScore: number, nextProgress: QuestionProgress[]) => {
     window.setTimeout(() => {
@@ -139,7 +135,13 @@ export default function QuizPage() {
   }, [currentIndex, currentProgress?.selectedAnswer, currentQuestion, goToNextQuestion, score])
 
   useEffect(() => {
-    if (isLoading || error || currentProgress?.selectedAnswer || !currentQuestion || !currentProgress) {
+    if (
+      isLoading ||
+      error ||
+      currentProgress?.selectedAnswer ||
+      !currentQuestion ||
+      !currentProgress
+    ) {
       return undefined
     }
 
@@ -168,9 +170,15 @@ export default function QuizPage() {
   if (isLoading) {
     return (
       <main className="grid min-h-screen place-items-center px-5 text-slate-900 dark:text-white">
-        <p className="rounded-2xl border border-white/60 bg-white/80 px-6 py-4 font-bold shadow-xl shadow-slate-950/10 backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/75">
-          Cargando paises...
-        </p>
+        <section className="w-full max-w-md rounded-[1.75rem] border border-white/60 bg-white/80 p-6 text-center shadow-2xl shadow-slate-950/10 backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/75">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600 dark:border-slate-800 dark:border-t-cyan-300" />
+          <h1 className="mt-5 text-2xl font-black text-slate-950 dark:text-white">
+            Preparando el quiz
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Estamos cargando paises y generando las preguntas para esta ronda.
+          </p>
+        </section>
       </main>
     )
   }
@@ -183,9 +191,21 @@ export default function QuizPage() {
           <p className="mt-2 text-slate-600 dark:text-slate-300">
             {error || 'No hay preguntas disponibles.'}
           </p>
-          <Link className="mt-5 inline-flex font-bold text-indigo-600 dark:text-cyan-300" to="/">
-            Volver al inicio
-          </Link>
+          <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
+            <button
+              className="rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-600/25 transition hover:-translate-y-0.5 hover:bg-indigo-700 dark:bg-cyan-400 dark:text-slate-950 dark:shadow-cyan-400/20"
+              onClick={loadQuiz}
+              type="button"
+            >
+              Reintentar
+            </button>
+            <Link
+              className="rounded-2xl border border-slate-300 bg-white/70 px-5 py-3 text-sm font-black text-slate-700 transition hover:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+              to="/"
+            >
+              Volver al inicio
+            </Link>
+          </div>
         </section>
       </main>
     )
@@ -227,6 +247,11 @@ export default function QuizPage() {
           <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
             Puedes navegar entre preguntas y revisar tu progreso desde cualquier punto del quiz.
           </p>
+          {statusMessage ? (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+              {statusMessage}
+            </div>
+          ) : null}
         </aside>
 
         <div className="min-w-0">

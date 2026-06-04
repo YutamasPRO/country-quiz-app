@@ -5,6 +5,12 @@ export type Country = {
   region: string
 }
 
+export type CountriesResult = {
+  countries: Country[]
+  source: 'remote' | 'fallback'
+  message?: string
+}
+
 type RestCountry = {
   name: { common: string }
   capital?: string[]
@@ -23,7 +29,7 @@ const fallbackCountries: Country[] = [
   { name: 'Italy', capital: 'Rome', flag: 'https://flagcdn.com/it.svg', region: 'Europe' },
 ]
 
-export async function getCountries(): Promise<Country[]> {
+export async function getCountries(): Promise<CountriesResult> {
   try {
     const response = await fetch(
       'https://restcountries.com/v3.1/all?fields=name,capital,flags,region',
@@ -43,8 +49,23 @@ export async function getCountries(): Promise<Country[]> {
         region: country.region,
       }))
 
-    return countries.length >= 4 ? countries : fallbackCountries
+    if (countries.length >= 4) {
+      return {
+        countries,
+        source: 'remote',
+      }
+    }
+
+    return {
+      countries: fallbackCountries,
+      source: 'fallback',
+      message: 'Usamos paises de respaldo porque la API no devolvio suficientes resultados.',
+    }
   } catch {
-    return fallbackCountries
+    return {
+      countries: fallbackCountries,
+      source: 'fallback',
+      message: 'No pudimos cargar la API en este momento. El quiz sigue disponible con datos locales.',
+    }
   }
 }
