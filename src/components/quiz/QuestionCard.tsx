@@ -26,9 +26,9 @@ export default function QuestionCard({
   onAnswer,
 }: QuestionCardProps) {
   return (
-    <section className="w-full max-w-2xl rounded-lg border border-slate-200 bg-white p-5 shadow-xl shadow-slate-950/10 dark:border-slate-800 dark:bg-slate-950">
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-700 dark:bg-cyan-400/10 dark:text-cyan-200">
+    <section className="w-full rounded-[1.75rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-950/10 backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/80 sm:p-7">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <span className="w-fit rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-700 dark:bg-cyan-400/10 dark:text-cyan-200">
           Pregunta {currentIndex + 1} de {total}
         </span>
         <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -36,13 +36,15 @@ export default function QuestionCard({
         </span>
       </div>
 
-      <img
-        alt={`Bandera de ${question.country.name}`}
-        className="mb-5 h-28 w-full rounded-md object-contain"
-        src={question.country.flag}
-      />
+      <div className="mb-6 rounded-[1.5rem] bg-slate-100/90 p-4 dark:bg-slate-900/90">
+        <img
+          alt={`Bandera de ${question.country.name}`}
+          className="h-32 w-full rounded-xl object-contain sm:h-40"
+          src={question.country.flag}
+        />
+      </div>
 
-      <h1 className="mb-6 text-2xl font-bold leading-tight text-slate-950 dark:text-white">
+      <h1 className="mb-6 text-2xl font-black leading-tight text-slate-950 dark:text-white sm:text-3xl">
         {question.prompt}
       </h1>
 
@@ -50,19 +52,19 @@ export default function QuestionCard({
         <Timer seconds={seconds} />
       </div>
 
-      <div className="mb-6 grid grid-cols-5 gap-2 sm:grid-cols-6">
+      <div className="mb-6 grid grid-cols-5 gap-2 sm:grid-cols-10">
         {progress.map((item, index) => {
           const isCurrent = index === currentIndex
           const isAnswered = item.selectedAnswer !== null
 
           return (
             <button
-              className={`rounded-md border px-3 py-2 text-sm font-bold transition ${
+              className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-bold transition ${
                 isCurrent
-                  ? 'border-indigo-600 bg-indigo-600 text-white dark:border-cyan-300 dark:bg-cyan-300 dark:text-slate-950'
+                  ? 'border-indigo-600 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 dark:border-cyan-300 dark:bg-cyan-300 dark:text-slate-950 dark:shadow-cyan-400/10'
                   : isAnswered
                     ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-200'
-                    : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-cyan-400'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-cyan-400 dark:hover:bg-slate-800'
               }`}
               key={index}
               onClick={() => onChangeQuestion(index)}
