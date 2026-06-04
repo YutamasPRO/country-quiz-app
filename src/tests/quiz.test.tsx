@@ -19,6 +19,12 @@ const countries: Country[] = [
   { name: 'Japan', capital: 'Tokyo', flag: 'jp.svg', region: 'Asia' },
   { name: 'France', capital: 'Paris', flag: 'fr.svg', region: 'Europe' },
   { name: 'Brazil', capital: 'Brasilia', flag: 'br.svg', region: 'Americas' },
+  { name: 'Canada', capital: 'Ottawa', flag: 'ca.svg', region: 'Americas' },
+  { name: 'Morocco', capital: 'Rabat', flag: 'ma.svg', region: 'Africa' },
+  { name: 'Australia', capital: 'Canberra', flag: 'au.svg', region: 'Oceania' },
+  { name: 'Italy', capital: 'Rome', flag: 'it.svg', region: 'Europe' },
+  { name: 'India', capital: 'New Delhi', flag: 'in.svg', region: 'Asia' },
+  { name: 'Kenya', capital: 'Nairobi', flag: 'ke.svg', region: 'Africa' },
 ]
 
 beforeEach(() => {
@@ -34,6 +40,12 @@ describe('country quiz', () => {
     expect(questions).toHaveLength(2)
     expect(questions[0].options).toHaveLength(4)
     expect(questions[0].options).toContain(questions[0].answer)
+  })
+
+  it('genera diez preguntas por defecto cuando hay datos suficientes', () => {
+    const questions = createQuestions(countries)
+
+    expect(questions).toHaveLength(10)
   })
 
   it('guarda solamente el puntaje mas alto', () => {

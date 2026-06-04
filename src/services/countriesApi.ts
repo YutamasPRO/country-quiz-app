@@ -27,6 +27,8 @@ const fallbackCountries: Country[] = [
   { name: 'Morocco', capital: 'Rabat', flag: 'https://flagcdn.com/ma.svg', region: 'Africa' },
   { name: 'Australia', capital: 'Canberra', flag: 'https://flagcdn.com/au.svg', region: 'Oceania' },
   { name: 'Italy', capital: 'Rome', flag: 'https://flagcdn.com/it.svg', region: 'Europe' },
+  { name: 'India', capital: 'New Delhi', flag: 'https://flagcdn.com/in.svg', region: 'Asia' },
+  { name: 'Kenya', capital: 'Nairobi', flag: 'https://flagcdn.com/ke.svg', region: 'Africa' },
 ]
 
 export async function getCountries(): Promise<CountriesResult> {
@@ -49,7 +51,7 @@ export async function getCountries(): Promise<CountriesResult> {
         region: country.region,
       }))
 
-    if (countries.length >= 4) {
+    if (countries.length >= 10) {
       return {
         countries,
         source: 'remote',

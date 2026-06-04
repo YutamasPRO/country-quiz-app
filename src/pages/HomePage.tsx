@@ -14,7 +14,7 @@ export default function HomePage() {
         </header>
 
         <section className="grid flex-1 items-center gap-8 py-8 md:grid-cols-[1.05fr_0.95fr] md:gap-12 md:py-10">
-          <div className="order-2 md:order-1">
+          <div className="order-1">
             <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
               DevChallenges Frontend
             </p>
@@ -39,7 +39,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="order-1 rounded-[2rem] border border-white/60 bg-white/75 p-5 shadow-2xl shadow-slate-950/10 backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/75 md:order-2 md:p-7">
+          <div className="order-2 rounded-[2rem] border border-white/60 bg-white/75 p-5 shadow-2xl shadow-slate-950/10 backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/75 md:p-7">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
