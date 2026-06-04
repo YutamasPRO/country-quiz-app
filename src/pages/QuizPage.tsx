@@ -46,6 +46,11 @@ export default function QuizPage() {
 
   const currentQuestion = useMemo(() => questions[currentIndex], [currentIndex, questions])
   const currentProgress = progress[currentIndex]
+  const answeredCount = useMemo(
+    () => progress.filter((item) => item.selectedAnswer !== null).length,
+    [progress],
+  )
+  const isQuizComplete = questions.length > 0 && answeredCount === questions.length
   const score = useMemo(
     () =>
       questions.reduce((total, question, index) => {
@@ -87,14 +92,23 @@ export default function QuizPage() {
     }
   }, [])
 
-  const goToNextQuestion = useCallback((nextScore: number) => {
+  const goToNextQuestion = useCallback((nextScore: number, nextProgress: QuestionProgress[]) => {
     window.setTimeout(() => {
-      if (currentIndex + 1 >= questions.length) {
+      const isComplete = nextProgress.every((item) => item.selectedAnswer !== null)
+
+      if (isComplete) {
         navigate('/result', { state: { score: nextScore, total: questions.length } })
         return
       }
 
-      setCurrentIndex((current) => current + 1)
+      const nextUnansweredIndex = nextProgress.findIndex((item) => item.selectedAnswer === null)
+
+      if (nextUnansweredIndex >= 0) {
+        setCurrentIndex(nextUnansweredIndex)
+        return
+      }
+
+      setCurrentIndex((current) => Math.min(current + 1, questions.length - 1))
     }, 650)
   }, [currentIndex, navigate, questions.length])
 
@@ -106,18 +120,22 @@ export default function QuizPage() {
     const isCorrect = answer === currentQuestion.answer
     const nextScore = isCorrect ? score + 1 : score
 
-    setProgress((current) =>
-      current.map((item, index) =>
+    let nextProgress: QuestionProgress[] = []
+
+    setProgress((current) => {
+      nextProgress = current.map((item, index) =>
         index === currentIndex
           ? {
               ...item,
               selectedAnswer: answer,
             }
           : item,
-      ),
-    )
+      )
+
+      return nextProgress
+    })
     playFeedback(isCorrect ? 'correct' : 'wrong')
-    goToNextQuestion(nextScore)
+    goToNextQuestion(nextScore, nextProgress)
   }, [currentIndex, currentProgress?.selectedAnswer, currentQuestion, goToNextQuestion, score])
 
   useEffect(() => {
@@ -184,8 +202,12 @@ export default function QuizPage() {
 
       <div className="mx-auto mt-8 flex w-full max-w-5xl flex-col items-center gap-4">
         <p className="text-sm font-bold text-slate-600 dark:text-slate-300">Puntaje: {score}</p>
+        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+          Respondidas: {answeredCount}/{questions.length}
+        </p>
         <QuestionCard
           currentIndex={currentIndex}
+          isQuizComplete={isQuizComplete}
           onChangeQuestion={setCurrentIndex}
           onAnswer={handleAnswer}
           question={currentQuestion}

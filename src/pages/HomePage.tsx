@@ -22,7 +22,7 @@ export default function HomePage() {
               Adivina paises antes de que el reloj llegue a cero.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300">
-              Responde seis preguntas de capitales, conserva tu mejor racha en el navegador y
+              Responde diez preguntas de capitales, conserva tu mejor racha en el navegador y
               alterna el tema de la interfaz.
             </p>
 
@@ -41,7 +41,7 @@ export default function HomePage() {
 
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-xl shadow-slate-950/10 dark:border-slate-800 dark:bg-slate-900">
             <div className="grid grid-cols-2 gap-3">
-              {['15s por pregunta', 'Sonidos sutiles', 'Modo oscuro', 'React Router'].map(
+              {['10 preguntas', '15s por pregunta', 'Modo oscuro', 'React Router'].map(
                 (feature) => (
                   <div
                     className="min-h-24 rounded-md bg-slate-100 p-4 text-sm font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-100"

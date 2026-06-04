@@ -12,7 +12,7 @@ export default function ResultPage() {
   const location = useLocation()
   const state = (location.state ?? {}) as ResultState
   const score = state.score ?? 0
-  const total = state.total ?? 6
+  const total = state.total ?? 10
   const highScore = Math.max(score, getHighScore())
 
   useEffect(() => {

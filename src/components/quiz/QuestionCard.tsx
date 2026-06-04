@@ -7,6 +7,7 @@ type QuestionCardProps = {
   currentIndex: number
   total: number
   seconds: number
+  isQuizComplete: boolean
   progress: Array<{ selectedAnswer: string | null }>
   selectedAnswer: string | null
   onAnswer: (answer: string) => void
@@ -16,6 +17,7 @@ type QuestionCardProps = {
 export default function QuestionCard({
   question,
   currentIndex,
+  isQuizComplete,
   onChangeQuestion,
   progress,
   total,
@@ -71,6 +73,12 @@ export default function QuestionCard({
           )
         })}
       </div>
+
+      {isQuizComplete ? (
+        <p className="mb-6 rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-200">
+          Completaste las {total} preguntas del quiz.
+        </p>
+      ) : null}
 
       <div className="grid gap-3">
         {question.options.map((option) => {
