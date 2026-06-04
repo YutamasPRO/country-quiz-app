@@ -22,6 +22,7 @@ export default function QuizPage() {
   const [statusMessage, setStatusMessage] = useState('')
   const [currentIndex, setCurrentIndex] = useState(0)
   const [progress, setProgress] = useState<QuestionProgress[]>([])
+  const [reloadKey, setReloadKey] = useState(0)
 
   const currentQuestion = useMemo(() => questions[currentIndex], [currentIndex, questions])
   const currentProgress = progress[currentIndex]
@@ -39,14 +40,17 @@ export default function QuizPage() {
   )
 
   const loadQuiz = useCallback(() => {
-    let isActive = true
-
     setIsLoading(true)
     setError('')
     setStatusMessage('')
     setCurrentIndex(0)
     setQuestions([])
     setProgress([])
+    setReloadKey((current) => current + 1)
+  }, [])
+
+  useEffect(() => {
+    let isActive = true
 
     getCountries()
       .then(({ countries, message, source }) => {
@@ -80,13 +84,7 @@ export default function QuizPage() {
     return () => {
       isActive = false
     }
-  }, [])
-
-  useEffect(() => {
-    const cleanup = loadQuiz()
-
-    return cleanup
-  }, [loadQuiz])
+  }, [reloadKey])
 
   const goToNextQuestion = useCallback((nextScore: number, nextProgress: QuestionProgress[]) => {
     window.setTimeout(() => {
@@ -106,7 +104,7 @@ export default function QuizPage() {
 
       setCurrentIndex((current) => Math.min(current + 1, questions.length - 1))
     }, 650)
-  }, [currentIndex, navigate, questions.length])
+  }, [navigate, questions.length])
 
   const handleAnswer = useCallback((answer: string) => {
     if (!currentQuestion || currentProgress?.selectedAnswer) {
