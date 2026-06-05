@@ -38,6 +38,19 @@ export default function QuizPage() {
       }, 0),
     [progress, questions],
   )
+  const questionStatuses = useMemo(
+    () =>
+      questions.map((question, index) => {
+        const selectedAnswer = progress[index]?.selectedAnswer
+
+        if (selectedAnswer === null || selectedAnswer === undefined) {
+          return 'unanswered' as const
+        }
+
+        return selectedAnswer === question.answer ? 'correct' : 'wrong'
+      }),
+    [progress, questions],
+  )
 
   const loadQuiz = useCallback(() => {
     setIsLoading(true)
@@ -113,24 +126,26 @@ export default function QuizPage() {
 
     const isCorrect = answer === currentQuestion.answer
     const nextScore = isCorrect ? score + 1 : score
+    const nextProgress = progress.map((item, index) =>
+      index === currentIndex
+        ? {
+            ...item,
+            selectedAnswer: answer,
+          }
+        : item,
+    )
 
-    let nextProgress: QuestionProgress[] = []
-
-    setProgress((current) => {
-      nextProgress = current.map((item, index) =>
-        index === currentIndex
-          ? {
-              ...item,
-              selectedAnswer: answer,
-            }
-          : item,
-      )
-
-      return nextProgress
-    })
+    setProgress(nextProgress)
     playFeedback(isCorrect ? 'correct' : 'wrong')
     goToNextQuestion(nextScore, nextProgress)
-  }, [currentIndex, currentProgress?.selectedAnswer, currentQuestion, goToNextQuestion, score])
+  }, [
+    currentIndex,
+    currentProgress?.selectedAnswer,
+    currentQuestion,
+    goToNextQuestion,
+    progress,
+    score,
+  ])
 
   useEffect(() => {
     if (
@@ -259,7 +274,7 @@ export default function QuizPage() {
             onChangeQuestion={setCurrentIndex}
             onAnswer={handleAnswer}
             question={currentQuestion}
-            progress={progress}
+            questionStatuses={questionStatuses}
             seconds={currentProgress?.secondsLeft ?? secondsPerQuestion}
             selectedAnswer={currentProgress?.selectedAnswer ?? null}
             total={questions.length}
