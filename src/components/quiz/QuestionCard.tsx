@@ -8,7 +8,7 @@ type QuestionCardProps = {
   total: number
   seconds: number
   isQuizComplete: boolean
-  progress: Array<{ selectedAnswer: string | null }>
+  questionStatuses: Array<'unanswered' | 'correct' | 'wrong'>
   selectedAnswer: string | null
   onAnswer: (answer: string) => void
   onChangeQuestion: (index: number) => void
@@ -19,7 +19,7 @@ export default function QuestionCard({
   currentIndex,
   isQuizComplete,
   onChangeQuestion,
-  progress,
+  questionStatuses,
   total,
   seconds,
   selectedAnswer,
@@ -53,18 +53,19 @@ export default function QuestionCard({
       </div>
 
       <div className="mb-6 grid grid-cols-5 gap-2 sm:grid-cols-10">
-        {progress.map((item, index) => {
+        {questionStatuses.map((status, index) => {
           const isCurrent = index === currentIndex
-          const isAnswered = item.selectedAnswer !== null
 
           return (
             <button
               className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-bold transition ${
                 isCurrent
                   ? 'border-indigo-600 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 dark:border-cyan-300 dark:bg-cyan-300 dark:text-slate-950 dark:shadow-cyan-400/10'
-                  : isAnswered
+                  : status === 'correct'
                     ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-200'
-                    : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-cyan-400 dark:hover:bg-slate-800'
+                    : status === 'wrong'
+                      ? 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-500/60 dark:bg-rose-500/10 dark:text-rose-200'
+                      : 'border-slate-300 bg-white text-slate-700 hover:border-indigo-400 hover:bg-indigo-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-cyan-400 dark:hover:bg-slate-800'
               }`}
               key={index}
               onClick={() => onChangeQuestion(index)}
